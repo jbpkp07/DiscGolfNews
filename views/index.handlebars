@@ -1,0 +1,45 @@
+<div id="screenWrapper">
+
+    <div id="sidebar">
+        <span id="titleText">Burgers</span>
+        <hr>
+        <div id="orderText">Order Burger</div>
+        <form>
+            <input id="orderName" class="formInput" type="text" placeholder="Burger name (required)" spellcheck="false" autocomplete="off" required>
+            {{#each ingredients}}
+                <div class="ingredientWrapper">
+                    <span class="ingredientName">{{name}}</span>
+                    <input class="checkbox" type="checkbox" data-type="ingredient" data-id="{{id}}" data-name="{{name}}">
+                </div>
+            {{/each}}
+            <button id="submitOrderBTN" class="btn" type="submit">submit</button>
+        </form>
+    </div>
+
+    <div id="burgers">
+        {{#each burgers}}
+            <div {{#unless devoured}} class="burger" {{else}} class="burger burgerDevoured" {{/unless}}>
+                <div {{#if devoured}} class="devoured" {{/if}}>
+                    <div class="burgerName">{{name}}</div>
+                    <div class="burgerIngredientsWrapper">
+                        {{#each ingredients}}
+                            <div class="burgerIngredient">{{this}}</div>
+                        {{/each}}
+                    </div>
+                </div>
+                <div {{#unless devoured}} class="burgerActionsWrapper" {{else}} class="burgerActionsWrapper burgerActionsWrapperDevoured" {{/unless}}>
+                    <div {{#unless devoured}} class="btn burgerActionsBtn" {{else}} class="btn disabledBurgerActionsBtn" {{/unless}} data-type="devour" data-id="{{id}}" data-name="{{name}}" data-devoured="{{devoured}}">devour</div>
+                    <div class="btn burgerActionsBtn" data-type="delete" data-id="{{id}}" data-name="{{name}}" data-devoured="{{devoured}}">delete</div>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(() => {
+
+        const viewController = new ViewController();
+    });
+</script>

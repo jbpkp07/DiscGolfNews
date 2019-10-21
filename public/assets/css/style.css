@@ -1,0 +1,230 @@
+:root {
+    --light-white: rgba(248,248,248,1.0);
+    --medium-white: rgba(232,232,232,1.0);
+    --dark-white: rgba(192,192,192,1.0);
+    --dark-white-transparent: rgba(192,192,192,0.5);
+
+    --lighter-gray-transparent: rgba(72,72,72,0.2);
+    --lighter-gray: rgba(72,72,72,1.0);
+    --light-gray: rgba(48,48,48,1.0);
+    --medium-gray: rgba(32,32,32,1.0);
+    --dark-gray: rgba(18,18,18,1.0);
+
+    --light-blue: rgba(0,174,239,1.0);
+    --medium-blue: rgba(30,145,255,1.0);
+
+    --light-red: rgba(251,103,105,1.0);
+    --light-red-transparent: rgba(251,103,105,0.25);
+
+    --light-green: rgba(42,252,156,1.0);
+}
+
+@font-face {
+    font-family: 'Roboto-Regular';
+    src: url('../fonts/Roboto-Regular.ttf') format('truetype');
+}
+
+html {
+    height: 100%;
+    cursor: default;
+}
+
+body {
+    background: var(--dark-gray);
+    color: var(--medium-gray);
+    font-family: 'Roboto-Regular', sans-serif;
+    font-size: 12pt;
+    font-weight: 600;
+    height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    /* overflow-y: hidden; */
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+#screenWrapper {
+    display: flex;
+    width: 100%;
+}
+
+#sidebar {
+    background: var(--light-red);
+    border-right: 5px solid var(--lighter-gray);
+    height: 100%;
+    position: fixed;
+    text-align: center;
+    width: 240px;
+}
+
+#titleText {
+    background: var(--lighter-gray);
+    border: 5px solid var(--light-green);
+    border-radius: 10px;
+    color: var(--light-blue);
+    display: inline-block;
+    font-size: 36pt;
+    margin: 20px 0px 13px 0px;
+    padding: 5px 16px 12px 11px;
+    text-shadow: 5px 0 var(--dark-gray);
+}
+
+hr {
+    border: 2px solid var(--lighter-gray);;
+}
+
+#orderText {
+    font-size: 14pt;
+    margin: 17px 0px 10px 0px;
+}
+
+.formInput {
+    background: var(--lighter-gray);
+    border: 2px solid var(--light-blue);
+    border-radius: 5px;
+    box-shadow: none;
+    color: var(--light-green);
+    font-size: 12pt;
+    height: 28px;
+    margin-bottom: 10px;
+    outline: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-decoration: none;
+    width: 180px;
+}
+
+::placeholder {
+    color: var(--dark-white-transparent);
+}
+
+.ingredientWrapper {
+    height: 40px;
+    margin: 0 auto;
+    width: 204px;
+}
+
+.ingredientName {
+    float: left;
+    position: relative;
+    top: 10px;
+}
+
+.checkbox {
+    background: var(--lighter-gray);
+    border: 2px solid var(--light-blue);
+    border-radius: 5px;
+    cursor: pointer;
+    height: 30px;
+    outline: none;
+    width: 30px;
+    float: right;
+    -webkit-appearance: none;
+}
+
+.checkbox:checked:after{
+    content: url("../images/checkmark.png");
+}
+
+.btn {
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Roboto-Regular', sans-serif;
+    font-size: 12pt;
+    outline: none;
+    padding: 6px;
+    width: fit-content;
+}
+
+#submitOrderBTN {
+    background: var(--lighter-gray);
+    border: 2px solid var(--light-blue);
+    color: var(--light-blue);
+    margin: 10px auto;
+}
+
+#submitOrderBTN:hover {
+    border: 2px solid var(--light-green);
+}
+
+#burgers {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 30px 30px 30px 270px;
+}
+
+.burger {
+    background: var(--lighter-gray);
+    border: 5px solid var(--light-red);
+    border-radius: 10px;
+    height: 200px;
+    margin: 0px 30px 30px 0px;
+    position: relative; /* to align .burgerActions */
+    width: 300px;
+}
+
+.burgerDevoured {
+    border: 5px solid var(--light-red-transparent);
+}
+
+.devoured {
+    opacity: 0.25;
+}
+
+.burgerName {
+    background: var(--medium-gray);
+    border-bottom: 2px solid var(--light-red);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: var(--light-blue);
+    padding: 10px 0px 10px 0px;
+    text-align: center;
+    width: 100%;
+}
+
+.burgerIngredientsWrapper {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.burgerIngredient {
+    background: var(--light-red);
+    border-radius: 50px;
+    color: var(--lighter-gray);
+    margin: 10px 0px 0px 10px;
+    padding: 5px;
+}
+
+.burgerActionsWrapper {
+    background: var(--medium-gray);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top: 2px solid var(--light-red);
+    bottom: 0;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+
+.burgerActionsWrapperDevoured {
+    border-top: 2px solid var(--light-red-transparent);
+}
+
+.burgerActionsBtn, .disabledBurgerActionsBtn {
+    background: var(--light-gray);
+    border: 2px solid var(--light-blue);
+    color: var(--light-blue);
+    display: inline-block;
+    font-weight: 400;
+    margin: 5px;
+}
+
+.burgerActionsBtn:hover {
+    border: 2px solid var(--light-green);
+}
+
+.disabledBurgerActionsBtn {
+    cursor: not-allowed;
+    opacity: 0.25;
+}
