@@ -68,7 +68,7 @@ export class Controller {
      
             }).finally(() => {
                
-                this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
+                // this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
                     
 
                     this.dgNewsDatabase.getAllArticles().then((allArticles: mongoose.Document[]) => {
@@ -81,9 +81,9 @@ export class Controller {
                     });
 
 
-                }).catch((error: string) => {
-                    response.status(500).send(error);
-                });
+                // }).catch((error: string) => {
+                //     response.status(500).send(error);
+                // });
 
 
                

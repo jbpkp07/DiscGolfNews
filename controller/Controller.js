@@ -36,16 +36,16 @@ class Controller {
             }).catch((error) => {
                 console.log(error);
             }).finally(() => {
-                this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
-                    this.dgNewsDatabase.getAllArticles().then((allArticles) => {
-                        response.json(allArticles);
-                    }).catch((error) => {
-                        console.log(error);
-                        response.status(500).send(error);
-                    });
+                // this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
+                this.dgNewsDatabase.getAllArticles().then((allArticles) => {
+                    response.json(allArticles);
                 }).catch((error) => {
+                    console.log(error);
                     response.status(500).send(error);
                 });
+                // }).catch((error: string) => {
+                //     response.status(500).send(error);
+                // });
             });
             // const handleBarsOBJ: any = {};
             // response.render("index", handleBarsOBJ);
