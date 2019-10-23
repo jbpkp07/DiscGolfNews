@@ -11,14 +11,35 @@ class DgNewsDatabase {
     constructor() {
         this.Articles = Article_js_1.Articles;
         this.Notes = Note_js_1.Notes;
+        this._scrapedArticles = [];
+    }
+    get scrapedArticles() {
+        return this._scrapedArticles;
+    }
+    set scrapedArticles(articles) {
+        this._scrapedArticles = articles;
     }
     async connect() {
         const options = {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            useCreateIndex: true,
+            useCreateIndex: true // prevents deprecation warning
         };
         return mongoose_1.default.connect(config_js_1.config.MONGODB_URI, options);
+    }
+    async isArticleInDatabase(article) {
+        return new Promise((resolve, reject) => {
+            this.Articles.findOne({ link: article.link }).exec().then((result) => {
+                if (result === null) {
+                    resolve(false); // NOT in database
+                }
+                else {
+                    resolve(true); // is in database
+                }
+            }).catch((error) => {
+                reject(error);
+            });
+        });
     }
     async getAllArticles() {
         return new Promise((resolve, reject) => {
@@ -29,10 +50,26 @@ class DgNewsDatabase {
             });
         });
     }
-    async addNewArticle(article) {
+    async getNotesForArticle(articleId) {
         return new Promise((resolve, reject) => {
-            this.Articles.findOne({ link: article.link }).exec().then((result) => {
-                if (result === null) { // checks to make sure article is unique (validation is also done in the Articles Model)
+            this.Articles.findOne({ _id: articleId }).populate("notes").exec().then((article) => {
+                if (article !== null) {
+                    const notes = [];
+                    article.notes.forEach((noteObj) => notes.push(noteObj.note));
+                    resolve(notes);
+                }
+                else {
+                    reject("DgNewsDatabase:getNotesForArticle()   Article not found: Could not retrieve notes.");
+                }
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+    async saveNewArticle(article) {
+        return new Promise((resolve, reject) => {
+            this.isArticleInDatabase(article).then((isInDatabase) => {
+                if (!isInDatabase) { // checks to make sure article is unique (validation is also done in the Articles Model)
                     this.Articles.create(article).then((newArticle) => {
                         resolve(newArticle);
                     }).catch((error) => {
@@ -40,14 +77,14 @@ class DgNewsDatabase {
                     });
                 }
                 else {
-                    reject("Article not added: Already in database.");
+                    reject("DgNewsDatabase:saveNewArticle()   Article not added: Already in database.");
                 }
             }).catch((error) => {
                 reject(error);
             });
         });
     }
-    async addNewNote(note, articleId) {
+    async saveNewNote(note, articleId) {
         return new Promise((resolve, reject) => {
             this.Notes.create(note).then((newNote) => {
                 const options = [
@@ -82,7 +119,7 @@ class DgNewsDatabase {
                     });
                 }
                 else {
-                    reject("Article not found: Could not delete.");
+                    reject("DgNewsDatabase:deleteArticle()   Article not found: Could not delete.");
                 }
             }).catch((error) => {
                 reject(error);
@@ -93,6 +130,25 @@ class DgNewsDatabase {
         return new Promise((resolve, reject) => {
             this.Notes.findByIdAndDelete(noteId).exec().then(() => {
                 resolve();
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+    async filterForUnsavedArticles(articles) {
+        return new Promise((resolve, reject) => {
+            const filteredArticles = [];
+            const promises = [];
+            for (const article of articles) {
+                promises.push(this.isArticleInDatabase(article));
+            }
+            Promise.all(promises).then((isSaved) => {
+                for (let i = 0; i < isSaved.length; i++) {
+                    if (!isSaved[i]) {
+                        filteredArticles.push(articles[i]);
+                    }
+                }
+                resolve(filteredArticles);
             }).catch((error) => {
                 reject(error);
             });

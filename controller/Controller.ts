@@ -1,7 +1,10 @@
+import { AxiosResponse, default as axios } from "axios";
+import cheerio from "cheerio";
 import { default as express } from "express";
 import mongoose from "mongoose";
 // import { terminal } from "terminal-kit";
 
+import { config } from "../config/config.js";
 import { DgNewsDatabase } from "../db/DgNewsDatabase";
 import { IArticle } from "../interfaces/IArticle";
 import { INote } from "../interfaces/INote";
@@ -24,6 +27,8 @@ export class Controller {
     private assignRouteListeners(): void {
 
         this.getHomePage();
+
+        this.apiScrapeNews();
 
         // this.postAPIBurgers();
 
@@ -54,31 +59,31 @@ export class Controller {
                 note: "This is the second note"
             };
 
-            this.dgNewsDatabase.addNewArticle(article).then((newArticle: mongoose.Document) => {
+            this.dgNewsDatabase.saveNewArticle(article).then(async (newArticle: mongoose.Document) => {
 
 
-                this.dgNewsDatabase.addNewNote(note1, newArticle._id);
+                await this.dgNewsDatabase.saveNewNote(note1, newArticle._id);
 
-                this.dgNewsDatabase.addNewNote(note2, newArticle._id);
+                await this.dgNewsDatabase.saveNewNote(note2, newArticle._id);
 
 
             }).catch((error: string) => {
-     
-                console.log(error);
-     
-            }).finally(() => {
-               
-                // this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
-                    
 
-                    this.dgNewsDatabase.getAllArticles().then((allArticles: mongoose.Document[]) => {
-                
-                        response.json(allArticles);
-        
-                    }).catch((error: string) => {
-                        console.log(error);
-                        response.status(500).send(error);
-                    });
+                console.log(error);
+
+            }).finally(() => {
+
+                // this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
+
+
+                this.dgNewsDatabase.getAllArticles().then((allArticles: mongoose.Document[]) => {
+
+                    response.json(allArticles);
+
+                }).catch((error: string) => {
+                    console.log(error);
+                    response.status(500).send(error);
+                });
 
 
                 // }).catch((error: string) => {
@@ -86,23 +91,9 @@ export class Controller {
                 // });
 
 
-               
+
 
             });
-
-
-
-
-
-
-            // const handleBarsOBJ: any = {};
-
-            // response.render("index", handleBarsOBJ);
-
-
-
-
-
 
 
             // const handleBarsOBJ = {};
@@ -110,25 +101,69 @@ export class Controller {
             // const burgersPromise = this.burgersDatabase.getAllBurgers();
 
             // burgersPromise.then((burgers) => {
-      
+
             //     handleBarsOBJ.burgers = burgers;
             // });
 
             // const ingredientsPromise = this.burgersDatabase.getAllIngredients();
 
             // ingredientsPromise.then((ingredients) => {
-        
+
             //     handleBarsOBJ.ingredients = ingredients;
             // });
 
             // Promise.all([burgersPromise, ingredientsPromise]).then(() => {
-  
+
             //     response.render("index", handleBarsOBJ);
 
             // }).catch((error) => {
 
             //     response.status(500).send(error);
             // });
+        });
+    }
+
+    private apiScrapeNews(): void {
+
+        this.router.get("/scrape", (_request: express.Request, response: express.Response) => {
+
+            axios.get(config.ultiWorldDgURL).then((res: AxiosResponse) => {
+
+                const $: CheerioStatic = cheerio.load(res.data);
+
+                const articles: IArticle[] = [];
+
+                $(config.ultiWorldDgContainerElement).each((_i: number, element: CheerioElement) => {
+
+                    const heading: Cheerio = $(element).find(config.ultiWorldDgHeadingElement);
+                    const excerpt: Cheerio = $(element).find(config.ultiWorldDgExcerptElement);
+
+                    const article: IArticle = {
+                        title: heading.text().trim(),
+                        link: heading.attr("href").trim(),
+                        excerpt: excerpt.text().trim(),
+                        notes: []
+                    };
+
+                    articles.push(article);
+                });
+
+                // for (const art of articles) {
+
+                //     this.dgNewsDatabase.saveNewArticle(art).then((result) => {
+                        
+                //     }).catch(() => {});
+                // }
+
+                this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles: IArticle[]) => {
+    
+                    response.json(filteredArticles);
+                });
+
+            }).catch((error: string) => {
+
+                response.status(500).send(error);
+            });
         });
     }
 
