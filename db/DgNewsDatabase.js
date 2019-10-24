@@ -16,9 +16,6 @@ class DgNewsDatabase {
     get scrapedArticles() {
         return this._scrapedArticles;
     }
-    set scrapedArticles(articles) {
-        this._scrapedArticles = articles;
-    }
     async connect() {
         const options = {
             useNewUrlParser: true,
@@ -148,6 +145,7 @@ class DgNewsDatabase {
                         filteredArticles.push(articles[i]);
                     }
                 }
+                this._scrapedArticles = filteredArticles;
                 resolve(filteredArticles);
             }).catch((error) => {
                 reject(error);

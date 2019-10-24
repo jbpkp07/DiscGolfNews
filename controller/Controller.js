@@ -90,6 +90,8 @@ class Controller {
                 // }
                 this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles) => {
                     response.json(filteredArticles);
+                    // response.location("/");
+                    // response.redirect("/");
                 });
             }).catch((error) => {
                 response.status(500).send(error);

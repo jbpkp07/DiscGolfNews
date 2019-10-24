@@ -158,6 +158,8 @@ export class Controller {
                 this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles: IArticle[]) => {
     
                     response.json(filteredArticles);
+                    // response.location("/");
+                    // response.redirect("/");
                 });
 
             }).catch((error: string) => {

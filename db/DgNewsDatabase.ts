@@ -26,11 +26,6 @@ export class DgNewsDatabase {
         return this._scrapedArticles;
     }
 
-    public set scrapedArticles(articles: IArticle[]) {
-
-        this._scrapedArticles = articles;
-    }
-
     public async connect(): Promise<typeof mongoose> {
 
         const options: object = {
@@ -239,6 +234,8 @@ export class DgNewsDatabase {
                         filteredArticles.push(articles[i]);
                     }
                 }
+
+                this._scrapedArticles = filteredArticles;
 
                 resolve(filteredArticles);
 
