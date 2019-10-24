@@ -148,12 +148,12 @@ export class Controller {
                     articles.push(article);
                 });
 
-                // for (const art of articles) {
+                for (const art of articles) {
 
-                //     this.dgNewsDatabase.saveNewArticle(art).then((result) => {
+                    this.dgNewsDatabase.saveNewArticle(art).then((result) => {
                         
-                //     }).catch(() => {});
-                // }
+                    }).catch(() => {});
+                }
 
                 this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles: IArticle[]) => {
     

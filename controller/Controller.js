@@ -84,10 +84,10 @@ class Controller {
                     };
                     articles.push(article);
                 });
-                // for (const art of articles) {
-                //     this.dgNewsDatabase.saveNewArticle(art).then((result) => {
-                //     }).catch(() => {});
-                // }
+                for (const art of articles) {
+                    this.dgNewsDatabase.saveNewArticle(art).then((result) => {
+                    }).catch(() => { });
+                }
                 this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles) => {
                     response.json(filteredArticles);
                     // response.location("/");
