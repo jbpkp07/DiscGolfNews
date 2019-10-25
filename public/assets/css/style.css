@@ -4,6 +4,7 @@
     --dark-white: rgba(192,192,192,1.0);
     --dark-white-transparent: rgba(192,192,192,0.5);
 
+    --lightest-gray: rgba(136,136,136,1.0);
     --lighter-gray-transparent: rgba(72,72,72,0.2);
     --lighter-gray: rgba(72,72,72,1.0);
     --light-gray: rgba(48,48,48,1.0);
@@ -17,11 +18,17 @@
     --light-red-transparent: rgba(251,103,105,0.25);
 
     --light-green: rgba(42,252,156,1.0);
+
+    --light-purple: rgba(151,64,250,1.0);
 }
 
 @font-face {
     font-family: 'Roboto-Regular';
     src: url('../fonts/Roboto-Regular.ttf') format('truetype');
+}
+
+* {
+    user-select: none;
 }
 
 html {
@@ -31,17 +38,15 @@ html {
 
 body {
     background: var(--dark-gray);
-    color: var(--medium-gray);
+    color: var(--light-green);
     font-family: 'Roboto-Regular', sans-serif;
     font-size: 12pt;
-    font-weight: 600;
-    height: 100%;
-    margin: 0;
+    /* height: 100%; */
     overflow-x: hidden;
     /* overflow-y: hidden; */
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    width: 100%;
+    /* width: 100%; */
 }
 
 #screenWrapper {
@@ -50,7 +55,7 @@ body {
 }
 
 #sidebar {
-    background: var(--light-red);
+    background: var(--light-blue);
     border-right: 5px solid var(--lighter-gray);
     height: 100%;
     position: fixed;
@@ -58,111 +63,103 @@ body {
     width: 240px;
 }
 
-#titleText {
-    background: var(--lighter-gray);
+#dgnTitleText {
+    background: var(--light-gray);
     border: 5px solid var(--light-green);
     border-radius: 10px;
     color: var(--light-blue);
     display: inline-block;
-    font-size: 36pt;
+    font-size: 20pt;
     margin: 20px 0px 13px 0px;
-    padding: 5px 16px 12px 11px;
-    text-shadow: 5px 0 var(--dark-gray);
+    padding: 10px;
+    text-shadow: 2px 0 var(--dark-gray);
 }
 
 hr {
     border: 2px solid var(--lighter-gray);;
 }
 
-#orderText {
+#actionsText {
+    color: var(--dark-gray);
     font-size: 14pt;
+    font-weight: 600;
     margin: 17px 0px 10px 0px;
 }
 
-.formInput {
-    background: var(--lighter-gray);
-    border: 2px solid var(--light-blue);
-    border-radius: 5px;
-    box-shadow: none;
-    color: var(--light-green);
-    font-size: 12pt;
-    height: 28px;
-    margin-bottom: 10px;
-    outline: none;
-    padding-left: 10px;
-    padding-right: 10px;
+a {
     text-decoration: none;
-    width: 180px;
-}
-
-::placeholder {
-    color: var(--dark-white-transparent);
-}
-
-.ingredientWrapper {
-    height: 40px;
-    margin: 0 auto;
-    width: 204px;
-}
-
-.ingredientName {
-    float: left;
-    position: relative;
-    top: 10px;
-}
-
-.checkbox {
-    background: var(--lighter-gray);
-    border: 2px solid var(--light-blue);
-    border-radius: 5px;
-    cursor: pointer;
-    height: 30px;
-    outline: none;
-    width: 30px;
-    float: right;
-    -webkit-appearance: none;
-}
-
-.checkbox:checked:after{
-    content: url("../images/checkmark.png");
 }
 
 .btn {
+    background: var(--dark-gray);
+    border: 3px solid var(--lighter-gray);
     border-radius: 10px;
+    color: var(--light-blue);
     cursor: pointer;
+    display: inline-block;
     font-family: 'Roboto-Regular', sans-serif;
     font-size: 12pt;
+    margin: 10px auto 0px auto;
     outline: none;
-    padding: 6px;
-    width: fit-content;
+    padding: 8px;
 }
 
-#submitOrderBTN {
-    background: var(--lighter-gray);
-    border: 2px solid var(--light-blue);
-    color: var(--light-blue);
-    margin: 10px auto;
+.btn:hover {
+    color: var(--light-green);
 }
 
-#submitOrderBTN:hover {
-    border: 2px solid var(--light-green);
-}
-
-#burgers {
+#articles {
     display: flex;
     flex-wrap: wrap;
-    margin: 30px 30px 30px 270px;
+    margin: 30px 30px 30px 275px;
+    width: calc(100% - 275px);
 }
 
-.burger {
-    background: var(--lighter-gray);
-    border: 5px solid var(--light-red);
+.article {
+    background: var(--dark-gray);
+    border: 3px solid var(--light-blue);
     border-radius: 10px;
-    height: 200px;
     margin: 0px 30px 30px 0px;
-    position: relative; /* to align .burgerActions */
-    width: 300px;
 }
+
+.labelTitle {
+    color: var(--light-blue);
+    display: inline-block;
+    margin: 15px 2px 0px 15px;
+}
+
+.textTitle {
+    color: var(--light-green);
+    display: inline-block;
+    margin: 15px 15px 0px 15px;
+}
+
+.labelExcerpt {
+    color: var(--light-blue);
+    display: inline-block;
+    margin: 15px -5px 0px 15px;
+}
+
+.textExcerpt {
+    color: var(--lightest-gray);
+    display: inline-block;
+    margin: 15px 15px 15px 15px;
+}
+
+.btn-group {
+    border-top: 1px solid var(--light-blue);
+    text-align: center;
+}
+
+.btn-article {
+    margin: 5px;
+}
+
+
+
+
+
+
 
 .burgerDevoured {
     border: 5px solid var(--light-red-transparent);

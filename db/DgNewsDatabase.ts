@@ -41,63 +41,57 @@ export class DgNewsDatabase {
     public async isArticleInDatabase(article: IArticle): Promise<boolean> {
 
         return new Promise((resolve: Function, reject: Function): void => {
-            
-            this.Articles.findOne({ link: article.link }).exec().then((result: mongoose.Document | null) => {
 
-                if (result === null) {
+            this.Articles.findOne({ link: article.link }).exec()
 
-                    resolve(false); // NOT in database
-                }
-                else {
+                .then((result: mongoose.Document | null) => {
 
-                    resolve(true); // is in database
-                }
+                    if (result !== null) {
 
-            }).catch((error: string) => {
+                        resolve(true);  // is in database
+                    }
+                    else {
 
-                reject(error);
-            });
+                        resolve(false); // NOT in database
+                    }
+
+                }).catch((error: string) => {
+
+                    reject(error);
+                });
         });
     }
 
     public async getAllArticles(): Promise<mongoose.Document[]> {
 
-        return new Promise((resolve: Function, reject: Function): void => {
-
-            this.Articles.find().populate("notes").exec().then((articles: mongoose.Document[]): void => {
-
-                resolve(articles);
-
-            }).catch((error: string) => {
-
-                reject(error);
-            });
-        });
+        return this.Articles.find().populate("notes").exec();
     }
 
-    public async getNotesForArticle(articleId: string): Promise<mongoose.Document[]> {
+    public async getNotesForArticle(articleId: string): Promise<string[]> {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
-            this.Articles.findOne({ _id: articleId }).populate("notes").exec().then((article: any): void => {
+            this.Articles.findOne({ _id: articleId }).populate("notes").exec()
 
-                if (article !== null) {
+                .then((article: any): void => {
 
-                    const notes: string[] = [];
+                    if (article !== null) {
 
-                    article.notes.forEach((noteObj: INote) => notes.push(noteObj.note));
+                        const notes: string[] = [];
 
-                    resolve(notes);
-                }
-                else {
+                        article.notes.forEach((noteObj: INote) => notes.push(noteObj.note));
 
-                    reject("DgNewsDatabase:getNotesForArticle()   Article not found: Could not retrieve notes.");
-                }
+                        resolve(notes);
+                    }
+                    else {
 
-            }).catch((error: string) => {
+                        reject("DgNewsDatabase:getNotesForArticle()   Article not found: Could not retrieve notes.");
+                    }
 
-                reject(error);
-            });
+                }).catch((error: string) => {
+
+                    reject(error);
+                });
         });
     }
 
@@ -105,28 +99,29 @@ export class DgNewsDatabase {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
-            this.isArticleInDatabase(article).then((isInDatabase: boolean) => {
+            this.isArticleInDatabase(article)
 
-                if (!isInDatabase) { // checks to make sure article is unique (validation is also done in the Articles Model)
+                .then(async (isInDatabase: boolean) => {
 
-                    this.Articles.create(article).then((newArticle: mongoose.Document): void => {
+                    if (!isInDatabase) { // checks to make sure article is unique (validation is also done in the Articles Model)
 
-                        resolve(newArticle);
+                        return Promise.resolve();
+                    }
 
-                    }).catch((error: string) => {
+                    return Promise.reject("DgNewsDatabase:saveNewArticle()   Article not added: Already in database.");
+                })
+                .then(async () => {
 
-                        reject(error);
-                    });
-                }
-                else {
+                    return this.Articles.create(article);
+                })
+                .then((newArticle: mongoose.Document): void => {
 
-                    reject("DgNewsDatabase:saveNewArticle()   Article not added: Already in database.");
-                }
+                    resolve(newArticle);
+                })
+                .catch((error: string) => {
 
-            }).catch((error: string) => {
-
-                reject(error);
-            });
+                    reject(error);
+                });
         });
     }
 
@@ -134,28 +129,44 @@ export class DgNewsDatabase {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
-            this.Notes.create(note).then((newNote: mongoose.Document): void => {
+            this.Articles.findOne({ _id: articleId }).exec()
 
-                const options: object[] = [
+                .then(async (article: mongoose.Document | null) => {
 
-                    { _id: articleId },
-                    { $push: { notes: newNote._id } },
-                    { new: true, useFindAndModify: false }
-                ];
+                    if (article === null) {
 
-                this.Articles.findOneAndUpdate(options[0], options[1], options[2]).exec().then((updatedArticle: mongoose.Document | null) => {
+                        return Promise.reject("DgNewsDatabase:saveNewNote()   Article not found: Unable to add note.");
+                    }
 
-                    resolve(updatedArticle);
+                    return this.Notes.create(note);
+                })
+                .then(async (newNote: mongoose.Document) => {
 
-                }).catch((error: string) => {
+                    const options: object[] = [
+
+                        { _id: articleId },
+                        { $push: { notes: newNote._id } },
+                        { new: true, useFindAndModify: false }
+                    ];
+
+                    // @ts-ignore
+                    return this.Articles.findOneAndUpdate(...options).exec();
+                })
+                .then((updatedArticle: mongoose.Document | null) => {
+
+                    if (updatedArticle !== null) {
+
+                        resolve(updatedArticle);
+                    }
+                    else {
+
+                        reject("DgNewsDatabase:saveNewNote()   Note added, but Article not updated successfully.");
+                    }
+                })
+                .catch((error: string) => {
 
                     reject(error);
                 });
-
-            }).catch((error: string) => {
-
-                reject(error);
-            });
         });
     }
 
@@ -163,61 +174,56 @@ export class DgNewsDatabase {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
-            this.Articles.findOne({ _id: articleId }).exec().then((article: any) => {
+            let articleToDelete: any;
 
-                if (article !== null) {
+            this.Articles.findOne({ _id: articleId }).exec()
 
-                    const promises: Promise<void>[] = [];
+                .then(async (article: mongoose.Document | null) => {
 
-                    article.notes.forEach((noteId: string) => {
+                    if (article !== null) {
+
+                        articleToDelete = article;
+
+                        return Promise.resolve();
+                    }
+
+                    return Promise.reject("DgNewsDatabase:deleteArticle()   Article not found: Could not delete.");
+                })
+                .then(async () => {
+
+                    const promises: Promise<mongoose.Document | null>[] = [];
+
+                    articleToDelete.notes.forEach((noteId: string) => {
 
                         promises.push(this.deleteNote(noteId));
                     });
 
-                    Promise.all(promises).then(() => {
+                    return Promise.all(promises);
+                })
+                .then(async () => {
 
-                        this.Articles.findByIdAndDelete(article._id).exec().then(() => {
+                    return this.Articles.findByIdAndDelete(articleToDelete._id).exec();
+                })
+                .then(() => {
 
-                            resolve();
+                    resolve();
+                })
+                .catch((error: string) => {
 
-                        }).catch((error: string) => {
-
-                            reject(error);
-                        });
-                    });
-                }
-                else {
-
-                    reject("DgNewsDatabase:deleteArticle()   Article not found: Could not delete.");
-                }
-
-            }).catch((error: string) => {
-
-                reject(error);
-            });
+                    reject(error);
+                });
         });
     }
 
-    public async deleteNote(noteId: string): Promise<void> {
+    public async deleteNote(noteId: string): Promise<mongoose.Document | null> {
 
-        return new Promise((resolve: Function, reject: Function): void => {
-
-            this.Notes.findByIdAndDelete(noteId).exec().then(() => {
-
-                resolve();
-
-            }).catch((error: string) => {
-
-                reject(error);
-            });
-        });
+        return this.Notes.findByIdAndDelete(noteId).exec();
     }
 
     public async filterForUnsavedArticles(articles: IArticle[]): Promise<IArticle[]> {
 
         return new Promise((resolve: Function, reject: Function): void => {
-      
-            const filteredArticles: IArticle[] = [];
+
             const promises: Promise<boolean>[] = [];
 
             for (const article of articles) {
@@ -225,24 +231,26 @@ export class DgNewsDatabase {
                 promises.push(this.isArticleInDatabase(article));
             }
 
-            Promise.all(promises).then((isSaved: boolean[]): void => {
-                
-                for (let i: number = 0; i < isSaved.length; i++) {
+            Promise.all(promises)
 
-                    if (!isSaved[i]) {
+                .then((isSaved: boolean[]): void => {
 
-                        filteredArticles.push(articles[i]);
+                    this._scrapedArticles = [];
+
+                    for (let i: number = 0; i < isSaved.length; i++) {
+
+                        if (!isSaved[i]) {
+
+                            this._scrapedArticles.push(articles[i]);
+                        }
                     }
-                }
 
-                this._scrapedArticles = filteredArticles;
+                    resolve(this._scrapedArticles);
+                })
+                .catch((error: string) => {
 
-                resolve(filteredArticles);
-
-            }).catch((error: string) => {
-                
-                reject(error);
-            });
+                    reject(error);
+                });
         });
     }
 }

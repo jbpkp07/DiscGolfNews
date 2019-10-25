@@ -1,40 +1,43 @@
 <div id="screenWrapper">
 
     <div id="sidebar">
-        <span id="titleText">Burgers</span>
+        <span id="dgnTitleText">Disc Golf News</span>
         <hr>
-        <div id="orderText">Order Burger</div>
-        <form>
-            <input id="orderName" class="formInput" type="text" placeholder="Burger name (required)" spellcheck="false" autocomplete="off" required>
-            {{#each ingredients}}
-                <div class="ingredientWrapper">
-                    <span class="ingredientName">{{name}}</span>
-                    <input class="checkbox" type="checkbox" data-type="ingredient" data-id="{{id}}" data-name="{{name}}">
-                </div>
-            {{/each}}
-            <button id="submitOrderBTN" class="btn" type="submit">submit</button>
-        </form>
+        <div id="actionsText">Actions</div>
+        {{#if showScrapeBtn}} <div id="scrapeBtn" class="btn">Scrape Articles</div> {{/if}}
+        {{#if showViewSavedBtn}}
+            <a href="/saved">
+                <div id="viewSavedBtn" class="btn">View Saved Articles</div>
+            </a>
+        {{/if}}
+        {{#if showClearBtn}} <div id="clearBtn" class="btn">Clear Saved Articles</div> {{/if}}
+        {{#if showViewScrapedBtn}} 
+            <a href="/">
+                <div id="viewScrapedBtn" class="btn">View Scraped Articles</div> 
+            </a>
+        {{/if}}
     </div>
-
-    <div id="burgers">
-        {{#each burgers}}
-            <div {{#unless devoured}} class="burger" {{else}} class="burger burgerDevoured" {{/unless}}>
-                <div {{#if devoured}} class="devoured" {{/if}}>
-                    <div class="burgerName">{{name}}</div>
-                    <div class="burgerIngredientsWrapper">
-                        {{#each ingredients}}
-                            <div class="burgerIngredient">{{this}}</div>
-                        {{/each}}
-                    </div>
+    <div id="articles">
+        {{#each articles}}
+            <div class="article">
+                <div>
+                    <span class="labelTitle">Article</span>       
+                    <span class="textTitle">{{title}}</span>
                 </div>
-                <div {{#unless devoured}} class="burgerActionsWrapper" {{else}} class="burgerActionsWrapper burgerActionsWrapperDevoured" {{/unless}}>
-                    <div {{#unless devoured}} class="btn burgerActionsBtn" {{else}} class="btn disabledBurgerActionsBtn" {{/unless}} data-type="devour" data-id="{{id}}" data-name="{{name}}" data-devoured="{{devoured}}">devour</div>
-                    <div class="btn burgerActionsBtn" data-type="delete" data-id="{{id}}" data-name="{{name}}" data-devoured="{{devoured}}">delete</div>
+                <div>
+                    <span class="labelExcerpt">Excerpt</span>       
+                    <span class="textExcerpt">{{excerpt}}</span>
+                </div>
+
+                <div class="btn-group">
+                    <a href={{link}} target="_blank">
+                        <div class="btn btn-article" data-type="link" data-id="{{_id}}">Link</div>
+                    </a>                
+                    <div class="btn btn-article" data-type="save" data-id="{{_id}}">Save</div> 
                 </div>
             </div>
         {{/each}}
     </div>
-
 </div>
 
 <script>

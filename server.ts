@@ -20,10 +20,9 @@ app.use(controller.router);
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
+printHeader();
 
 dgNewsDatabase.connect().then(() => {
-
-    // printHeader();
 
     app.listen(config.port, () => {
     

@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { config } from "../config/config.js";
 import { DgNewsDatabase } from "../db/DgNewsDatabase";
 import { IArticle } from "../interfaces/IArticle";
-import { INote } from "../interfaces/INote";
+import { IExpHbsObj } from "../interfaces/IExpHbsObj.js";
 
 export class Controller {
 
@@ -26,147 +26,138 @@ export class Controller {
 
     private assignRouteListeners(): void {
 
-        this.getHomePage();
+        this.router.route("/")
+            .get(this.homePage.bind(this));
 
-        this.apiScrapeNews();
+        this.router.route("/saved")
+            .get(this.savedPage.bind(this));
 
-        // this.postAPIBurgers();
-
-        // this.putAPIBurgers();
-
-        // this.deleteAPIBurgers();
+        this.router.route("/api/scrape")
+            .get(this.scrapeNews.bind(this));
     }
 
-    private getHomePage(): void {
+    private homePage(_request: express.Request, response: express.Response): void {
 
-        this.router.get("/", (_request: express.Request, response: express.Response) => {
+        this.dgNewsDatabase.getAllArticles()
 
-            const article: IArticle = {
+            .then((articles: any) => {
 
-                title: "Article 123",
-                excerpt: "Best article ever",
-                link: "blah2.com",
-                notes: []
-            };
+                for (const article of articles) {
 
-            const note1: INote = {
+                    if (article.title.length > 100) {
 
-                note: "This is the first note"
-            };
+                        article.title = `${article.title.substring(0, 120)}...`;
+                    }
 
-            const note2: INote = {
+                    if (article.excerpt.length > 100) {
 
-                note: "This is the second note"
-            };
-
-            this.dgNewsDatabase.saveNewArticle(article).then(async (newArticle: mongoose.Document) => {
-
-
-                await this.dgNewsDatabase.saveNewNote(note1, newArticle._id);
-
-                await this.dgNewsDatabase.saveNewNote(note2, newArticle._id);
-
-
-            }).catch((error: string) => {
-
-                console.log(error);
-
-            }).finally(() => {
-
-                // this.dgNewsDatabase.deleteArticle("5dad7aa78ff38016d4663043").then(() => {
-
-
-                this.dgNewsDatabase.getAllArticles().then((allArticles: mongoose.Document[]) => {
-
-                    response.json(allArticles);
-
-                }).catch((error: string) => {
-                    console.log(error);
-                    response.status(500).send(error);
-                });
-
-
-                // }).catch((error: string) => {
-                //     response.status(500).send(error);
-                // });
-
-
-
-
-            });
-
-
-            // const handleBarsOBJ = {};
-
-            // const burgersPromise = this.burgersDatabase.getAllBurgers();
-
-            // burgersPromise.then((burgers) => {
-
-            //     handleBarsOBJ.burgers = burgers;
-            // });
-
-            // const ingredientsPromise = this.burgersDatabase.getAllIngredients();
-
-            // ingredientsPromise.then((ingredients) => {
-
-            //     handleBarsOBJ.ingredients = ingredients;
-            // });
-
-            // Promise.all([burgersPromise, ingredientsPromise]).then(() => {
-
-            //     response.render("index", handleBarsOBJ);
-
-            // }).catch((error) => {
-
-            //     response.status(500).send(error);
-            // });
-        });
-    }
-
-    private apiScrapeNews(): void {
-
-        this.router.get("/scrape", (_request: express.Request, response: express.Response) => {
-
-            axios.get(config.ultiWorldDgURL).then((res: AxiosResponse) => {
-
-                const $: CheerioStatic = cheerio.load(res.data);
-
-                const articles: IArticle[] = [];
-
-                $(config.ultiWorldDgContainerElement).each((_i: number, element: CheerioElement) => {
-
-                    const heading: Cheerio = $(element).find(config.ultiWorldDgHeadingElement);
-                    const excerpt: Cheerio = $(element).find(config.ultiWorldDgExcerptElement);
-
-                    const article: IArticle = {
-                        title: heading.text().trim(),
-                        link: heading.attr("href").trim(),
-                        excerpt: excerpt.text().trim(),
-                        notes: []
-                    };
-
-                    articles.push(article);
-                });
-
-                for (const art of articles) {
-
-                    this.dgNewsDatabase.saveNewArticle(art).then((result) => {
-                        
-                    }).catch(() => {});
+                        article.excerpt = `${article.excerpt.substring(0, 120)}...`;
+                    }
                 }
 
-                this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles: IArticle[]) => {
-    
-                    response.json(filteredArticles);
-                    // response.location("/");
-                    // response.redirect("/");
-                });
+                const expHbsObj: IExpHbsObj = {
 
-            }).catch((error: string) => {
+                    articles,
+                    showScrapeBtn: true,
+                    showViewSavedBtn: true,
+                    showClearBtn: false,
+                    showViewScrapedBtn: false
+                };
+        
+                response.render("index", expHbsObj);
+            })
+            .catch((error: string) => {
 
                 response.status(500).send(error);
             });
+
+
+
+        // const handleBarsOBJ = {};
+
+        // const burgersPromise = this.burgersDatabase.getAllBurgers();
+
+        // burgersPromise.then((burgers) => {
+
+        //     handleBarsOBJ.burgers = burgers;
+        // });
+
+        // const ingredientsPromise = this.burgersDatabase.getAllIngredients();
+
+        // ingredientsPromise.then((ingredients) => {
+
+        //     handleBarsOBJ.ingredients = ingredients;
+        // });
+
+        // Promise.all([burgersPromise, ingredientsPromise]).then(() => {
+
+        //     response.render("index", handleBarsOBJ);
+
+        // }).catch((error) => {
+
+        //     response.status(500).send(error);
+        // });
+        // });
+    }
+
+    private savedPage(_request: express.Request, response: express.Response): void {
+
+        // const expHbsObj: IExpHbsObj = {
+
+        //     showScrapeBtn: false,
+        //     showViewSavedBtn: false,
+        //     showClearBtn: true,
+        //     showViewScrapedBtn: true
+        // };
+
+        // response.render("index", expHbsObj);
+    }
+
+    private scrapeNews(_request: express.Request, response: express.Response): void {
+
+        // this.router.get("/scrape", (_request: express.Request, response: express.Response) => {
+
+        axios.get(config.ultiWorldDgURL).then((res: AxiosResponse) => {
+
+            const $: CheerioStatic = cheerio.load(res.data);
+
+            const articles: IArticle[] = [];
+
+            $(config.ultiWorldDgContainerElement).each((_i: number, element: CheerioElement) => {
+
+                const heading: Cheerio = $(element).find(config.ultiWorldDgHeadingElement);
+                const excerpt: Cheerio = $(element).find(config.ultiWorldDgExcerptElement);
+
+                const article: IArticle = {
+
+                    title: heading.text().trim(),
+                    link: heading.attr("href").trim(),
+                    excerpt: excerpt.text().trim(),
+                    notes: []
+                };
+
+                articles.push(article);
+            });
+
+            for (const art of articles) {
+
+                this.dgNewsDatabase.saveNewArticle(art).then((_result) => {
+
+                }).catch(() => {});
+            }
+
+            this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles: IArticle[]) => {
+
+                response.json(filteredArticles);
+                // response.location("/");
+                // response.redirect("/");
+            });
+
+        }).catch((error: string) => {
+
+            response.status(500).send(error);
         });
+        // });
     }
 
     // postAPIBurgers() {
