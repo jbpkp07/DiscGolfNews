@@ -4,13 +4,21 @@
         <span id="dgnTitleText">Disc Golf News</span>
         <hr>
         <div id="actionsText">Actions</div>
-        {{#if showScrapeBtn}} <div id="scrapeBtn" class="btn">Scrape Articles</div> {{/if}}
+        {{#if showScrapeBtn}} 
+            <a href="/api/scrape">
+                <div id="scrapeBtn" class="btn">Scrape Articles</div>
+            </a>
+        {{/if}}
         {{#if showViewSavedBtn}}
             <a href="/saved">
                 <div id="viewSavedBtn" class="btn">View Saved Articles</div>
             </a>
         {{/if}}
-        {{#if showClearBtn}} <div id="clearBtn" class="btn">Clear Saved Articles</div> {{/if}}
+        {{#if showClearBtn}}
+            <a href="/clear">
+                <div id="clearBtn" class="btn">Clear Saved Articles</div> 
+            </a>
+        {{/if}}
         {{#if showViewScrapedBtn}} 
             <a href="/">
                 <div id="viewScrapedBtn" class="btn">View Scraped Articles</div> 
@@ -18,6 +26,12 @@
         {{/if}}
     </div>
     <div id="articles">
+        {{#if showNoUnsavedArticles}}
+            <div class="noArticles">All scraped articles already saved. Try scraping again.</div>
+        {{/if}}
+        {{#if showNoSavedArticles}}
+            <div class="noArticles">No saved articles</div>
+        {{/if}}
         {{#each articles}}
             <div class="article">
                 <div>
@@ -31,14 +45,38 @@
 
                 <div class="btn-group">
                     <a href={{link}} target="_blank">
-                        <div class="btn btn-article" data-type="link" data-id="{{_id}}">Link</div>
-                    </a>                
-                    <div class="btn btn-article" data-type="save" data-id="{{_id}}">Save</div> 
+                        <div class="btn btn-article" data-type="link">Link</div>
+                    </a>
+                    {{#if showSaveBtn}}                
+                        <div class="btn btn-article" data-type="save" data-title="{{title}}" data-excerpt="{{excerpt}}" data-link="{{link}}">Save</div>
+                    {{/if}}
+                    {{#if showDeleteBtn}}                
+                        <div class="btn btn-article" data-type="delete" data-id="{{_id}}">Delete</div>
+                    {{/if}}
+                    {{#if showNotesBtn}}                
+                        <div class="btn btn-article" data-type="notes" data-id="{{_id}}">Notes</div>
+                        <div id="notesModal" class="modal" data-id="{{_id}}">
+                            <div class="notesTitle">Notes</div>
+                            <div class="notesContainer" data-id="{{_id}}">
+                                {{#each notes}}
+                                    <div>
+                                        <span class="note" data-id="{{_id}}">{{note}}</span>
+                                        <span class="btn noteDeleteBtn" data-type="noteDelete" data-id="{{_id}}">X</span>
+                                    </div>
+                                {{/each}}
+                            </div>
+                            <form>
+                                <input id="noteInput" class="noteInput" data-id="{{_id}}" type="text" placeholder="New note" autocomplete="off" spellcheck="false">
+                                <button id="saveNote" class="btn saveNote" data-id="{{_id}}" type="submit">submit</button>
+                            </form>
+                        </div>
+                    {{/if}}
                 </div>
             </div>
         {{/each}}
     </div>
 </div>
+
 
 <script>
     $(document).ready(() => {

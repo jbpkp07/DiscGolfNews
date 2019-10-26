@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const cheerio_1 = __importDefault(require("cheerio"));
 const express_1 = __importDefault(require("express"));
-// import { terminal } from "terminal-kit";
+const terminal_kit_1 = require("terminal-kit");
 const config_js_1 = require("../config/config.js");
 class Controller {
     constructor(dgNewsDatabase) {
@@ -19,60 +19,88 @@ class Controller {
             .get(this.homePage.bind(this));
         this.router.route("/saved")
             .get(this.savedPage.bind(this));
+        this.router.route("/clear")
+            .get(this.clearSavedArticles.bind(this));
         this.router.route("/api/scrape")
             .get(this.scrapeNews.bind(this));
+        this.router.route("/api/save")
+            .post(this.saveArticle.bind(this));
+        this.router.route("/api/getnotes/:id")
+            .get(this.getNotes.bind(this));
+        this.router.route("/api/savenote/:id")
+            .post(this.saveNote.bind(this));
+        this.router.route("/api/delete/:id")
+            .delete(this.deleteArticle.bind(this));
+        this.router.route("/api/deletenote/:id")
+            .delete(this.deleteNote.bind(this));
     }
     homePage(_request, response) {
+        const articles = this.dgNewsDatabase.unSavedArticles;
+        for (const article of articles) {
+            if (article.title.length > config_js_1.config.maxLengthTitleExcerpt) {
+                article.title = `${article.title.substring(0, config_js_1.config.maxLengthTitleExcerpt - 3)}...`;
+            }
+            if (article.excerpt.length > config_js_1.config.maxLengthTitleExcerpt) {
+                article.excerpt = `${article.excerpt.substring(0, config_js_1.config.maxLengthTitleExcerpt - 3)}...`;
+            }
+            article.showSaveBtn = true;
+            article.showDeleteBtn = false;
+            article.showNotesBtn = false;
+        }
+        const expHbsObj = {
+            articles,
+            showNoUnsavedArticles: (articles.length === 0),
+            showNoSavedArticles: false,
+            showScrapeBtn: true,
+            showViewSavedBtn: true,
+            showClearBtn: false,
+            showViewScrapedBtn: false
+        };
+        response.render("index", expHbsObj);
+    }
+    savedPage(_request, response) {
         this.dgNewsDatabase.getAllArticles()
             .then((articles) => {
             for (const article of articles) {
-                if (article.title.length > 100) {
-                    article.title = `${article.title.substring(0, 120)}...`;
+                if (article.title.length > config_js_1.config.maxLengthTitleExcerpt) {
+                    article.title = `${article.title.substring(0, config_js_1.config.maxLengthTitleExcerpt - 3)}...`;
                 }
-                if (article.excerpt.length > 100) {
-                    article.excerpt = `${article.excerpt.substring(0, 120)}...`;
+                if (article.excerpt.length > config_js_1.config.maxLengthTitleExcerpt) {
+                    article.excerpt = `${article.excerpt.substring(0, config_js_1.config.maxLengthTitleExcerpt - 3)}...`;
                 }
+                article.showSaveBtn = false;
+                article.showDeleteBtn = true;
+                article.showNotesBtn = true;
             }
             const expHbsObj = {
                 articles,
-                showScrapeBtn: true,
-                showViewSavedBtn: true,
-                showClearBtn: false,
-                showViewScrapedBtn: false
+                showNoUnsavedArticles: false,
+                showNoSavedArticles: (articles.length === 0),
+                showScrapeBtn: false,
+                showViewSavedBtn: false,
+                showClearBtn: true,
+                showViewScrapedBtn: true
             };
             response.render("index", expHbsObj);
         })
             .catch((error) => {
+            terminal_kit_1.terminal.red(error);
             response.status(500).send(error);
         });
-        // const handleBarsOBJ = {};
-        // const burgersPromise = this.burgersDatabase.getAllBurgers();
-        // burgersPromise.then((burgers) => {
-        //     handleBarsOBJ.burgers = burgers;
-        // });
-        // const ingredientsPromise = this.burgersDatabase.getAllIngredients();
-        // ingredientsPromise.then((ingredients) => {
-        //     handleBarsOBJ.ingredients = ingredients;
-        // });
-        // Promise.all([burgersPromise, ingredientsPromise]).then(() => {
-        //     response.render("index", handleBarsOBJ);
-        // }).catch((error) => {
-        //     response.status(500).send(error);
-        // });
-        // });
     }
-    savedPage(_request, response) {
-        // const expHbsObj: IExpHbsObj = {
-        //     showScrapeBtn: false,
-        //     showViewSavedBtn: false,
-        //     showClearBtn: true,
-        //     showViewScrapedBtn: true
-        // };
-        // response.render("index", expHbsObj);
+    clearSavedArticles(_request, response) {
+        this.dgNewsDatabase.deleteAllArticles()
+            .then(() => {
+            response.redirect("/saved");
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
     }
     scrapeNews(_request, response) {
-        // this.router.get("/scrape", (_request: express.Request, response: express.Response) => {
-        axios_1.default.get(config_js_1.config.ultiWorldDgURL).then((res) => {
+        axios_1.default.get(config_js_1.config.ultiWorldDgURL)
+            .then(async (res) => {
             const $ = cheerio_1.default.load(res.data);
             const articles = [];
             $(config_js_1.config.ultiWorldDgContainerElement).each((_i, element) => {
@@ -86,19 +114,77 @@ class Controller {
                 };
                 articles.push(article);
             });
-            for (const art of articles) {
-                this.dgNewsDatabase.saveNewArticle(art).then((_result) => {
-                }).catch(() => { });
-            }
-            this.dgNewsDatabase.filterForUnsavedArticles(articles).then((filteredArticles) => {
-                response.json(filteredArticles);
-                // response.location("/");
-                // response.redirect("/");
-            });
-        }).catch((error) => {
+            return this.dgNewsDatabase.filterForUnsavedArticles(articles);
+        })
+            .then(() => {
+            response.redirect("/");
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
             response.status(500).send(error);
         });
-        // });
+    }
+    saveArticle(request, response) {
+        const article = request.body;
+        article.notes = []; // add empty notes array
+        this.dgNewsDatabase.saveNewArticle(article)
+            .then(async () => {
+            return this.dgNewsDatabase.refilterUnsavedArticles();
+        })
+            .then(() => {
+            response.sendStatus(200);
+        }).catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
+    }
+    saveNote(request, response) {
+        const note = request.body;
+        const articleId = request.params.id;
+        this.dgNewsDatabase.saveNewNote(note, articleId)
+            .then(async () => {
+            return this.dgNewsDatabase.getNotesForArticle(articleId);
+        })
+            .then((notes) => {
+            response.json(notes);
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
+    }
+    getNotes(request, response) {
+        const articleId = request.params.id;
+        this.dgNewsDatabase.getNotesForArticle(articleId)
+            .then((notes) => {
+            response.json(notes);
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
+    }
+    deleteArticle(request, response) {
+        const articleId = request.params.id;
+        this.dgNewsDatabase.deleteArticle(articleId)
+            .then(() => {
+            response.sendStatus(200);
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
+    }
+    deleteNote(request, response) {
+        const noteId = request.params.id;
+        this.dgNewsDatabase.deleteNote(noteId)
+            .then(() => {
+            response.sendStatus(200);
+        })
+            .catch((error) => {
+            terminal_kit_1.terminal.red(error);
+            response.status(500).send(error);
+        });
     }
 }
 exports.Controller = Controller;

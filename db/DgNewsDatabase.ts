@@ -1,8 +1,10 @@
 import mongoose, { Model } from "mongoose";
 
 import { config } from "../config/config.js";
-import { IArticle } from "../interfaces/IArticle.js";
-import { INote } from "../interfaces/INote.js";
+import { IArticle } from "../interfaces/IArticle";
+import { IArticleDoc } from "../interfaces/IArticleDoc";
+import { INote } from "../interfaces/INote";
+import { INoteDoc } from "../interfaces/INoteDoc";
 
 import { Articles } from "./models/Article.js";
 import { Notes } from "./models/Note.js";
@@ -10,20 +12,22 @@ import { Notes } from "./models/Note.js";
 
 export class DgNewsDatabase {
 
-    private readonly Articles: Model<mongoose.Document>;
-    private readonly Notes: Model<mongoose.Document>;
-    private _scrapedArticles: IArticle[];
+    private readonly Articles: Model<IArticleDoc>;
+    private readonly Notes: Model<INoteDoc>;
+    private _unSavedArticles: IArticle[];
 
     public constructor() {
 
         this.Articles = Articles;
         this.Notes = Notes;
-        this._scrapedArticles = [];
+        this._unSavedArticles = [];
     }
 
-    public get scrapedArticles(): IArticle[] {
+    public get unSavedArticles(): IArticle[] {
 
-        return this._scrapedArticles;
+        const unSavedArticlesCopy: IArticle[] = this._unSavedArticles.map((article: IArticle) => ({ ...article })); // deep copy of objects
+
+        return unSavedArticlesCopy;
     }
 
     public async connect(): Promise<typeof mongoose> {
@@ -44,7 +48,7 @@ export class DgNewsDatabase {
 
             this.Articles.findOne({ link: article.link }).exec()
 
-                .then((result: mongoose.Document | null) => {
+                .then((result: IArticleDoc | null) => {
 
                     if (result !== null) {
 
@@ -62,24 +66,33 @@ export class DgNewsDatabase {
         });
     }
 
-    public async getAllArticles(): Promise<mongoose.Document[]> {
+    public async getAllArticles(): Promise<IArticleDoc[]> {
 
         return this.Articles.find().populate("notes").exec();
     }
 
-    public async getNotesForArticle(articleId: string): Promise<string[]> {
+    public async getNotesForArticle(articleId: string): Promise<INote[]> {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
             this.Articles.findOne({ _id: articleId }).populate("notes").exec()
 
-                .then((article: any): void => {
+                .then((article: IArticleDoc | null) => {
 
                     if (article !== null) {
 
-                        const notes: string[] = [];
+                        const notes: INote[] = [];
 
-                        article.notes.forEach((noteObj: INote) => notes.push(noteObj.note));
+                        for (const noteDoc of article.notes) {
+
+                            const note: INote = {
+
+                                idForClient: noteDoc._id,
+                                note: noteDoc.note
+                            };
+
+                            notes.push(note);
+                        }
 
                         resolve(notes);
                     }
@@ -95,7 +108,7 @@ export class DgNewsDatabase {
         });
     }
 
-    public async saveNewArticle(article: IArticle): Promise<mongoose.Document> {
+    public async saveNewArticle(article: IArticle): Promise<IArticleDoc> {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
@@ -105,16 +118,12 @@ export class DgNewsDatabase {
 
                     if (!isInDatabase) { // checks to make sure article is unique (validation is also done in the Articles Model)
 
-                        return Promise.resolve();
+                        return this.Articles.create(article);
                     }
 
                     return Promise.reject("DgNewsDatabase:saveNewArticle()   Article not added: Already in database.");
                 })
-                .then(async () => {
-
-                    return this.Articles.create(article);
-                })
-                .then((newArticle: mongoose.Document): void => {
+                .then((newArticle: IArticleDoc): void => {
 
                     resolve(newArticle);
                 })
@@ -125,22 +134,22 @@ export class DgNewsDatabase {
         });
     }
 
-    public async saveNewNote(note: INote, articleId: string): Promise<mongoose.Document> {
+    public async saveNewNote(note: INote, articleId: string): Promise<IArticleDoc> {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
             this.Articles.findOne({ _id: articleId }).exec()
 
-                .then(async (article: mongoose.Document | null) => {
+                .then(async (article: IArticleDoc | null) => {
 
-                    if (article === null) {
+                    if (article !== null) {
 
-                        return Promise.reject("DgNewsDatabase:saveNewNote()   Article not found: Unable to add note.");
+                        return this.Notes.create(note);
                     }
 
-                    return this.Notes.create(note);
+                    return Promise.reject("DgNewsDatabase:saveNewNote()   Article not found: Unable to add note.");
                 })
-                .then(async (newNote: mongoose.Document) => {
+                .then(async (newNote: INoteDoc) => {
 
                     const options: object[] = [
 
@@ -149,10 +158,10 @@ export class DgNewsDatabase {
                         { new: true, useFindAndModify: false }
                     ];
 
-                    // @ts-ignore
+                    // @ts-ignore  (Typescript doesn't like the spread operator "...")
                     return this.Articles.findOneAndUpdate(...options).exec();
                 })
-                .then((updatedArticle: mongoose.Document | null) => {
+                .then((updatedArticle: IArticleDoc | null) => {
 
                     if (updatedArticle !== null) {
 
@@ -174,31 +183,27 @@ export class DgNewsDatabase {
 
         return new Promise((resolve: Function, reject: Function): void => {
 
-            let articleToDelete: any;
+            let articleToDelete: IArticleDoc;
 
-            this.Articles.findOne({ _id: articleId }).exec()
+            this.Articles.findOne({ _id: articleId }).populate("notes").exec()
 
-                .then(async (article: mongoose.Document | null) => {
+                .then(async (article: IArticleDoc | null) => {
 
                     if (article !== null) {
 
                         articleToDelete = article;
 
-                        return Promise.resolve();
+                        const promises: Promise<INoteDoc | null>[] = [];
+
+                        articleToDelete.notes.forEach((noteObj: INoteDoc) => {
+
+                            promises.push(this.deleteNote(noteObj._id));
+                        });
+
+                        return Promise.all(promises);
                     }
 
                     return Promise.reject("DgNewsDatabase:deleteArticle()   Article not found: Could not delete.");
-                })
-                .then(async () => {
-
-                    const promises: Promise<mongoose.Document | null>[] = [];
-
-                    articleToDelete.notes.forEach((noteId: string) => {
-
-                        promises.push(this.deleteNote(noteId));
-                    });
-
-                    return Promise.all(promises);
                 })
                 .then(async () => {
 
@@ -215,7 +220,35 @@ export class DgNewsDatabase {
         });
     }
 
-    public async deleteNote(noteId: string): Promise<mongoose.Document | null> {
+    public async deleteAllArticles(): Promise<void> {
+
+        return new Promise((resolve: Function, reject: Function): void => {
+
+            this.getAllArticles()
+
+                .then(async (articles: IArticleDoc[]) => {
+
+                    const promises: Promise<void>[] = [];
+
+                    for (const article of articles) {
+
+                        promises.push(this.deleteArticle(article._id));
+                    }
+
+                    return Promise.all(promises);
+                })
+                .then(() => {
+
+                    resolve();
+                })
+                .catch((error: string) => {
+
+                    reject(error);
+                });
+        });
+    }
+
+    public async deleteNote(noteId: string): Promise<INoteDoc | null> {
 
         return this.Notes.findByIdAndDelete(noteId).exec();
     }
@@ -235,22 +268,27 @@ export class DgNewsDatabase {
 
                 .then((isSaved: boolean[]): void => {
 
-                    this._scrapedArticles = [];
+                    this._unSavedArticles = [];
 
                     for (let i: number = 0; i < isSaved.length; i++) {
 
                         if (!isSaved[i]) {
 
-                            this._scrapedArticles.push(articles[i]);
+                            this._unSavedArticles.push(articles[i]);
                         }
                     }
 
-                    resolve(this._scrapedArticles);
+                    resolve(this._unSavedArticles);
                 })
                 .catch((error: string) => {
 
                     reject(error);
                 });
         });
+    }
+
+    public async refilterUnsavedArticles(): Promise<IArticle[]> {
+
+        return this.filterForUnsavedArticles(this._unSavedArticles);
     }
 }

@@ -7,4 +7,5 @@ export interface IConfig {
     ultiWorldDgHeadingElement: string;
     ultiWorldDgExcerptElement: string;
     publicAssetsPath: string;
+    maxLengthTitleExcerpt: number;
 }

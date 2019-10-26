@@ -24,6 +24,7 @@ const ArticleSchema = new mongoose_1.Schema({
     },
     notes: [{
             type: mongoose_1.Schema.Types.ObjectId,
+            required: true,
             ref: "Note"
         }]
 });

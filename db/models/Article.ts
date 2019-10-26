@@ -1,6 +1,8 @@
 import mongoose, { Model, Schema } from "mongoose";
 
-const ArticleSchema: mongoose.Schema = new Schema({
+import { IArticleDoc } from "../../interfaces/IArticleDoc";
+
+const ArticleSchema: Schema = new Schema({
 
     title: {
         type: String,
@@ -17,8 +19,9 @@ const ArticleSchema: mongoose.Schema = new Schema({
     },
     notes: [{
         type: Schema.Types.ObjectId,
+        required: true,
         ref: "Note"
     }]
 });
 
-export const Articles: Model<mongoose.Document> = mongoose.model("Article", ArticleSchema);
+export const Articles: Model<IArticleDoc> = mongoose.model("Article", ArticleSchema);

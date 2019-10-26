@@ -1,10 +1,14 @@
 import { Schema } from "mongoose";
 
+import { INoteDoc } from "./INoteDoc";
+
 export interface IArticle {
 
-    _id?: string,
     title: string;
-    link: string;
     excerpt: string;
-    notes: Array<Schema.Types.ObjectId>;
+    link: string;
+    notes: Array<INoteDoc>;
+    showSaveBtn?: boolean;
+    showDeleteBtn?: boolean;
+    showNotesBtn?: boolean;
 }

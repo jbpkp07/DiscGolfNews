@@ -10,6 +10,7 @@
     --light-gray: rgba(48,48,48,1.0);
     --medium-gray: rgba(32,32,32,1.0);
     --dark-gray: rgba(18,18,18,1.0);
+    --black: rgba(0,0,0,1.0);
 
     --light-blue: rgba(0,174,239,1.0);
     --medium-blue: rgba(30,145,255,1.0);
@@ -41,12 +42,10 @@ body {
     color: var(--light-green);
     font-family: 'Roboto-Regular', sans-serif;
     font-size: 12pt;
-    /* height: 100%; */
     overflow-x: hidden;
     /* overflow-y: hidden; */
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    /* width: 100%; */
 }
 
 #screenWrapper {
@@ -115,6 +114,15 @@ a {
     width: calc(100% - 275px);
 }
 
+.noArticles {
+    color: var(--light-blue);
+    font-size: 16pt;
+    position: absolute;
+    text-align: center;
+    top: 25%;
+    width: calc(100% - 305px);
+}
+
 .article {
     background: var(--dark-gray);
     border: 3px solid var(--light-blue);
@@ -155,73 +163,61 @@ a {
     margin: 5px;
 }
 
-
-
-
-
-
-
-.burgerDevoured {
-    border: 5px solid var(--light-red-transparent);
+#notesModal {
+    background: var(--dark-gray);
+    border: 3px solid var(--light-blue);
+    max-width: 480px;
+    padding: 20px;
+    width: 480px;
 }
 
-.devoured {
-    opacity: 0.25;
+.modal a.close-modal {
+    background-image: url("../images/modalCloseIcon.png");
+    cursor: pointer;
 }
 
-.burgerName {
-    background: var(--medium-gray);
-    border-bottom: 2px solid var(--light-red);
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+.notesTitle {
+    border-bottom: 1px solid var(--light-blue);
     color: var(--light-blue);
-    padding: 10px 0px 10px 0px;
+    font-size: 16pt;
+    padding-bottom: 20px;
     text-align: center;
-    width: 100%;
 }
 
-.burgerIngredientsWrapper {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.burgerIngredient {
-    background: var(--light-red);
-    border-radius: 50px;
-    color: var(--lighter-gray);
-    margin: 10px 0px 0px 10px;
-    padding: 5px;
-}
-
-.burgerActionsWrapper {
+#noteInput {
     background: var(--medium-gray);
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-top: 2px solid var(--light-red);
-    bottom: 0;
-    position: absolute;
-    text-align: center;
-    width: 100%;
+    border: 1px solid var(--light-blue);
+    border-radius: 5px;
+    box-shadow: none;
+    color: var(--light-green);
+    font-size: 12pt;
+    height: 28px;
+    margin-top: 40px;
+    outline: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-decoration: none;
+    width: 336px;
 }
 
-.burgerActionsWrapperDevoured {
-    border-top: 2px solid var(--light-red-transparent);
+::placeholder {
+    color: var(--lightest-gray);
 }
 
-.burgerActionsBtn, .disabledBurgerActionsBtn {
-    background: var(--light-gray);
-    border: 2px solid var(--light-blue);
-    color: var(--light-blue);
+#saveNote {
+    border-radius: 5px;
+    padding: 4px 8px 4px 8px;
+}
+
+.note {
     display: inline-block;
-    font-weight: 400;
-    margin: 5px;
+    margin: 10px 0px 10px 0px;
+    word-wrap: break-word;
 }
 
-.burgerActionsBtn:hover {
-    border: 2px solid var(--light-green);
-}
-
-.disabledBurgerActionsBtn {
-    cursor: not-allowed;
-    opacity: 0.25;
+.noteDeleteBtn {
+    border-radius: 5px;
+    display: inline-block;
+    margin: 0px 0px 0px 10px;
+    padding: 2px 11px 1px 10px;
 }

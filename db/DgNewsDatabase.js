@@ -11,10 +11,11 @@ class DgNewsDatabase {
     constructor() {
         this.Articles = Article_js_1.Articles;
         this.Notes = Note_js_1.Notes;
-        this._scrapedArticles = [];
+        this._unSavedArticles = [];
     }
-    get scrapedArticles() {
-        return this._scrapedArticles;
+    get unSavedArticles() {
+        const unSavedArticlesCopy = this._unSavedArticles.map((article) => (Object.assign({}, article))); // deep copy of objects
+        return unSavedArticlesCopy;
     }
     async connect() {
         const options = {
@@ -48,7 +49,13 @@ class DgNewsDatabase {
                 .then((article) => {
                 if (article !== null) {
                     const notes = [];
-                    article.notes.forEach((noteObj) => notes.push(noteObj.note));
+                    for (const noteDoc of article.notes) {
+                        const note = {
+                            idForClient: noteDoc._id,
+                            note: noteDoc.note
+                        };
+                        notes.push(note);
+                    }
                     resolve(notes);
                 }
                 else {
@@ -64,12 +71,9 @@ class DgNewsDatabase {
             this.isArticleInDatabase(article)
                 .then(async (isInDatabase) => {
                 if (!isInDatabase) { // checks to make sure article is unique (validation is also done in the Articles Model)
-                    return Promise.resolve();
+                    return this.Articles.create(article);
                 }
                 return Promise.reject("DgNewsDatabase:saveNewArticle()   Article not added: Already in database.");
-            })
-                .then(async () => {
-                return this.Articles.create(article);
             })
                 .then((newArticle) => {
                 resolve(newArticle);
@@ -83,10 +87,10 @@ class DgNewsDatabase {
         return new Promise((resolve, reject) => {
             this.Articles.findOne({ _id: articleId }).exec()
                 .then(async (article) => {
-                if (article === null) {
-                    return Promise.reject("DgNewsDatabase:saveNewNote()   Article not found: Unable to add note.");
+                if (article !== null) {
+                    return this.Notes.create(note);
                 }
-                return this.Notes.create(note);
+                return Promise.reject("DgNewsDatabase:saveNewNote()   Article not found: Unable to add note.");
             })
                 .then(async (newNote) => {
                 const options = [
@@ -94,7 +98,7 @@ class DgNewsDatabase {
                     { $push: { notes: newNote._id } },
                     { new: true, useFindAndModify: false }
                 ];
-                // @ts-ignore
+                // @ts-ignore  (Typescript doesn't like the spread operator "...")
                 return this.Articles.findOneAndUpdate(...options).exec();
             })
                 .then((updatedArticle) => {
@@ -113,23 +117,38 @@ class DgNewsDatabase {
     async deleteArticle(articleId) {
         return new Promise((resolve, reject) => {
             let articleToDelete;
-            this.Articles.findOne({ _id: articleId }).exec()
+            this.Articles.findOne({ _id: articleId }).populate("notes").exec()
                 .then(async (article) => {
                 if (article !== null) {
                     articleToDelete = article;
-                    return Promise.resolve();
+                    const promises = [];
+                    articleToDelete.notes.forEach((noteObj) => {
+                        promises.push(this.deleteNote(noteObj._id));
+                    });
+                    return Promise.all(promises);
                 }
                 return Promise.reject("DgNewsDatabase:deleteArticle()   Article not found: Could not delete.");
             })
                 .then(async () => {
-                const promises = [];
-                articleToDelete.notes.forEach((noteId) => {
-                    promises.push(this.deleteNote(noteId));
-                });
-                return Promise.all(promises);
-            })
-                .then(async () => {
                 return this.Articles.findByIdAndDelete(articleToDelete._id).exec();
+            })
+                .then(() => {
+                resolve();
+            })
+                .catch((error) => {
+                reject(error);
+            });
+        });
+    }
+    async deleteAllArticles() {
+        return new Promise((resolve, reject) => {
+            this.getAllArticles()
+                .then(async (articles) => {
+                const promises = [];
+                for (const article of articles) {
+                    promises.push(this.deleteArticle(article._id));
+                }
+                return Promise.all(promises);
             })
                 .then(() => {
                 resolve();
@@ -150,18 +169,21 @@ class DgNewsDatabase {
             }
             Promise.all(promises)
                 .then((isSaved) => {
-                this._scrapedArticles = [];
+                this._unSavedArticles = [];
                 for (let i = 0; i < isSaved.length; i++) {
                     if (!isSaved[i]) {
-                        this._scrapedArticles.push(articles[i]);
+                        this._unSavedArticles.push(articles[i]);
                     }
                 }
-                resolve(this._scrapedArticles);
+                resolve(this._unSavedArticles);
             })
                 .catch((error) => {
                 reject(error);
             });
         });
+    }
+    async refilterUnsavedArticles() {
+        return this.filterForUnsavedArticles(this._unSavedArticles);
     }
 }
 exports.DgNewsDatabase = DgNewsDatabase;

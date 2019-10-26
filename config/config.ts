@@ -15,5 +15,6 @@ export const config: IConfig = {
     ultiWorldDgContainerElement: "li.component-list__item.snippet-excerpt",
     ultiWorldDgHeadingElement: "h3.snippet-excerpt__heading > a",
     ultiWorldDgExcerptElement: "p.snippet-excerpt__excerpt.excerpt",
-    publicAssetsPath: getFullPath("../public/assets")
+    publicAssetsPath: getFullPath("../public/assets"),
+    maxLengthTitleExcerpt: 120
 };
