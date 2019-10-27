@@ -186,7 +186,7 @@ class ViewController {
 
         const noteId: string = htmlData.id;
 
-        const notesContainerElement: JQuery = $(`.noteDeleteBtn[data-id=${noteId}]`).parent().parent();
+        const notesContainerElement: JQuery = $(`.noteDeleteBtn[data-id=${noteId}]`).parents(".notesContainer");
 
         const articleId: any = notesContainerElement.attr("data-id");
 
@@ -195,7 +195,7 @@ class ViewController {
             type: "DELETE"
         };
 
-        $.ajax(`/api/deletenote/${noteId}`, ajaxConfig)
+        $.ajax(`/api/deletenote/${articleId}/${noteId}`, ajaxConfig)
 
             .then(() => {
 

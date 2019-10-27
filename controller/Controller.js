@@ -31,7 +31,7 @@ class Controller {
             .post(this.saveNote.bind(this));
         this.router.route("/api/delete/:id")
             .delete(this.deleteArticle.bind(this));
-        this.router.route("/api/deletenote/:id")
+        this.router.route("/api/deletenote/:aid/:nid")
             .delete(this.deleteNote.bind(this));
     }
     homePage(_request, response) {
@@ -176,8 +176,9 @@ class Controller {
         });
     }
     deleteNote(request, response) {
-        const noteId = request.params.id;
-        this.dgNewsDatabase.deleteNote(noteId)
+        const articleId = request.params.aid;
+        const noteId = request.params.nid;
+        this.dgNewsDatabase.deleteNote(articleId, noteId)
             .then(() => {
             response.sendStatus(200);
         })

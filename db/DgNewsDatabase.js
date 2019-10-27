@@ -123,7 +123,7 @@ class DgNewsDatabase {
                     articleToDelete = article;
                     const promises = [];
                     articleToDelete.notes.forEach((noteObj) => {
-                        promises.push(this.deleteNote(noteObj._id));
+                        promises.push(this.deleteNote(articleToDelete._id, noteObj._id));
                     });
                     return Promise.all(promises);
                 }
@@ -158,8 +158,25 @@ class DgNewsDatabase {
             });
         });
     }
-    async deleteNote(noteId) {
-        return this.Notes.findByIdAndDelete(noteId).exec();
+    async deleteNote(articleId, noteId) {
+        return new Promise((resolve, reject) => {
+            const options = [
+                { _id: articleId },
+                { $pull: { notes: noteId } },
+                { new: true, useFindAndModify: false }
+            ];
+            // @ts-ignore  (Typescript doesn't like the spread operator "...")
+            this.Articles.findOneAndUpdate(...options).exec()
+                .then(async () => {
+                return this.Notes.findByIdAndDelete(noteId).exec();
+            })
+                .then((deletedNote) => {
+                resolve(deletedNote);
+            })
+                .catch((error) => {
+                reject(error);
+            });
+        });
     }
     async filterForUnsavedArticles(articles) {
         return new Promise((resolve, reject) => {

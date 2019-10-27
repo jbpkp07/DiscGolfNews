@@ -117,12 +117,12 @@ class ViewController {
     deleteNote(event) {
         const htmlData = event.target.dataset;
         const noteId = htmlData.id;
-        const notesContainerElement = $(`.noteDeleteBtn[data-id=${noteId}]`).parent().parent();
+        const notesContainerElement = $(`.noteDeleteBtn[data-id=${noteId}]`).parents(".notesContainer");
         const articleId = notesContainerElement.attr("data-id");
         let ajaxConfig = {
             type: "DELETE"
         };
-        $.ajax(`/api/deletenote/${noteId}`, ajaxConfig)
+        $.ajax(`/api/deletenote/${articleId}/${noteId}`, ajaxConfig)
             .then(() => {
             ajaxConfig = {
                 type: "GET"

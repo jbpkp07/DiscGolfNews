@@ -197,7 +197,7 @@ export class DgNewsDatabase {
 
                         articleToDelete.notes.forEach((noteObj: INoteDoc) => {
 
-                            promises.push(this.deleteNote(noteObj._id));
+                            promises.push(this.deleteNote(articleToDelete._id, noteObj._id));
                         });
 
                         return Promise.all(promises);
@@ -248,9 +248,33 @@ export class DgNewsDatabase {
         });
     }
 
-    public async deleteNote(noteId: string): Promise<INoteDoc | null> {
+    public async deleteNote(articleId: string, noteId: string): Promise<INoteDoc | null> {
 
-        return this.Notes.findByIdAndDelete(noteId).exec();
+        return new Promise((resolve: Function, reject: Function): void => {
+            
+            const options: object[] = [
+
+                { _id: articleId },
+                { $pull: { notes: noteId } },  // remove note reference from article
+                { new: true, useFindAndModify: false }
+            ];
+    
+            // @ts-ignore  (Typescript doesn't like the spread operator "...")
+            this.Articles.findOneAndUpdate(...options).exec()
+    
+                .then(async () => {
+                    
+                    return this.Notes.findByIdAndDelete(noteId).exec();
+                })
+                .then((deletedNote: INoteDoc | null) => {
+                    
+                    resolve(deletedNote);
+                })
+                .catch((error: string) => {
+                    
+                    reject(error);
+                });
+        });
     }
 
     public async filterForUnsavedArticles(articles: IArticle[]): Promise<IArticle[]> {

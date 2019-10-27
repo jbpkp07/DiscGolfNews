@@ -52,7 +52,7 @@ export class Controller {
         this.router.route("/api/delete/:id")
             .delete(this.deleteArticle.bind(this));
 
-        this.router.route("/api/deletenote/:id")
+        this.router.route("/api/deletenote/:aid/:nid")
             .delete(this.deleteNote.bind(this));
     }
 
@@ -270,9 +270,10 @@ export class Controller {
 
     private deleteNote(request: express.Request, response: express.Response): void {
 
-        const noteId: string = request.params.id;
+        const articleId: string = request.params.aid;
+        const noteId: string = request.params.nid;
 
-        this.dgNewsDatabase.deleteNote(noteId)
+        this.dgNewsDatabase.deleteNote(articleId, noteId)
 
             .then(() => {
 
