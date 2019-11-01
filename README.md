@@ -31,10 +31,10 @@ I am the sole developer of this application.
 
 ### Screenshots:
 
-#### Locally running webserver:
+#### Saved articles (previously scraped):
 
-![1](https://github.com/jbpkp07/SequelizedBurger/blob/master/public/assets/images/server.png)
+![1](https://github.com/jbpkp07/DiscGolfNews/blob/master/public/assets/images/savedArticles.png)
 
-#### Hosted website:
+#### Add or delete notes associated with an article:
 
-![2](https://github.com/jbpkp07/SequelizedBurger/blob/master/public/assets/images/burgers.png)
+![2](https://github.com/jbpkp07/DiscGolfNews/blob/master/public/assets/images/notes.png)
