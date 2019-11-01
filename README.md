@@ -1,6 +1,6 @@
 # DiscGolfNews
 
-This is a webserver application that hosts a client web page that scrapes for Disc Golf news and allows you to save articles and notes on those articles in MongoDB.
+This is a webserver application that hosts a client web page that scrapes for disc golf news and allows you to save/delete articles and notes associated with those articles in MongoDB.
 
 ### Deployed website:
 
