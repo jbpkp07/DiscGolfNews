@@ -2,11 +2,6 @@
 
 This is a webserver application that hosts a client web page that scrapes for disc golf news and allows you to save/delete articles and notes associated with those articles in MongoDB.
 
-### Deployed website:
-
-https://jbpkp07-disc-golf-news.herokuapp.com
-
-
 ### Run it locally:
 
 You can clone this repository via command line (if you have Git installed) by typing:  
